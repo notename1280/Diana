@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "8456952048:AAF1p2qe3JwH7j8sClYqs1KARj-hv2BhMUM")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AQ.Ab8RN6LXAht74_gF4JQTckSDzYWVWub-t4SCUGmRzkhn8oq_pA")
-WEBHOOK_URL = os.environ.get("WEBHOOK_URL", "https://diana-bot.onrender.com")
+WEBHOOK_URL = os.environ.get("WEBHOOK_URL", "https://diana-production-e8b3.up.railway.app")
 
 ai_client = genai.Client(api_key=GEMINI_API_KEY)
 
