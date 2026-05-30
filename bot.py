@@ -1,18 +1,38 @@
 import logging
+import requests
 from flask import Flask, request
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
-from google import genai
 import asyncio
 import os
 
 logging.basicConfig(level=logging.INFO)
 
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "8456952048:AAF1p2qe3JwH7j8sClYqs1KARj-hv2BhMUM")
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AQ.Ab8RN6LXAht74_gF4JQTckSDzYWVWub-t4SCUGmRzkhn8oq_pA")
 WEBHOOK_URL = os.environ.get("WEBHOOK_URL", "https://diana-production-649b.up.railway.app")
 
-ai_client = genai.Client(api_key=GEMINI_API_KEY)
+CF_TOKEN = os.environ.get("CF_TOKEN", "cfut_hGSoxbF1VyJNIXPFwu86SZpQeOdc5BBGSZ1LTA1h87b57103")
+CF_ACCOUNT = os.environ.get("CF_ACCOUNT", "5a9bc64e37f76de2dc68eb7bcfa37411")
+CF_URL = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT}/ai/run/@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+
+def ask_ai(user_text):
+    headers = {"Authorization": f"Bearer {CF_TOKEN}"}
+    payload = {
+        "messages": [
+            {
+                "role": "system",
+                "content": (
+                    "أنت ذكاء اصطناعي مساعد اسمك 'مساعد محمد الرقمي'. "
+                    "تحدث دائماً باللهجة العراقية وبأسلوب صديق مقرب وذكي. "
+                    "ساعد محمد في البرمجة والدراسة وأي شيء يحتاجه."
+                )
+            },
+            {"role": "user", "content": user_text}
+        ]
+    }
+    response = requests.post(CF_URL, headers=headers, json=payload)
+    result = response.json()
+    return result["result"]["response"]
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("هلو! البوت شغال وجاهز أساعدك 🤖")
@@ -21,23 +41,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
     try:
-        response = ai_client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=user_text,
-            config={
-                'system_instruction': (
-                    "أنت ذكاء اصطناعي مساعد اسمك 'مساعد محمد الرقمي'. "
-                    "تحدث دائماً باللهجة العراقية وبأسلوب صديق مقرب وذكي. "
-                    "ساعد محمد في البرمجة والدراسة وأي شيء يحتاجه."
-                )
-            }
-        )
-        await update.message.reply_text(response.text)
+        reply = ask_ai(user_text)
+        await update.message.reply_text(reply)
     except Exception as e:
         logging.error(f"Error: {e}")
         await update.message.reply_text("كو مشكلة بالاتصال، حاول مرة ثانية.")
 
-# إنشاء event loop ثابت
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 
