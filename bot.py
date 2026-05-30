@@ -23,16 +23,24 @@ def ask_ai(user_text):
                 "role": "system",
                 "content": (
                     "أنت ذكاء اصطناعي مساعد اسمك 'مساعد محمد الرقمي'. "
-                    "تحدث دائماً باللهجة العراقية وبأسلوب صديق مقرب وذكي. "
-                    "ساعد محمد في البرمجة والدراسة وأي شيء يحتاجه."
+                    "تحدث دائماً باللهجة العراقية وبأسلوب صديق مقرب وذكي."
                 )
             },
             {"role": "user", "content": user_text}
         ]
     }
     response = requests.post(CF_URL, headers=headers, json=payload)
+    logging.info(f"CF Response: {response.text}")
     result = response.json()
-    return result["result"]["response"]
+    
+    # محاولة قراءة الرد بأكثر من طريقة
+    if result.get("result"):
+        return result["result"].get("response") or str(result["result"])
+    elif result.get("errors"):
+        logging.error(f"CF Error: {result['errors']}")
+        return "كو مشكلة بالـ AI، حاول مرة ثانية."
+    else:
+        return str(result)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("هلو! البوت شغال وجاهز أساعدك 🤖")
