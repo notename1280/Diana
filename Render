@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: diana-bot
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    envVars:
+      - key: TELEGRAM_TOKEN
+        value: 8456952048:AAF1p2qe3JwH7j8sClYqs1KARj-hv2BhMUM
+      - key: GEMINI_API_KEY
+        value: AQ.Ab8RN6LXAht74_gF4JQTckSDzYWVWub-t4SCUGmRzkhn8oq_pA
+      - key: WEBHOOK_URL
+        sync: false
